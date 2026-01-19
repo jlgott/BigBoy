@@ -1,0 +1,23 @@
+# Appendix A: Glossary
+
+| Term | Definition |
+|------|------------|
+| **Chunk** | Unit of data for comparison (sensor window, oil sample, event rollup) |
+| **Feature Vector** | Numeric representation of a chunk for distance calculation |
+| **Temporal Score** | Label indicating proximity to failure (the training signal) |
+| **Relevance Score** | Weight based on component mapping |
+| **Trust Score** | Weight based on source reliability |
+| **Flag** | Generated when new chunk scores above threshold |
+| **Failure-adjacent** | Chunks that preceded a failure event |
+| **Fleet baseline** | Statistical baseline across all assets of a model |
+| **KNN** | K-nearest neighbors algorithm for similarity search |
+| **BM25** | Best Matching 25 - ranking function for text/token similarity |
+| **Token** | Structured text representation of event (e.g., COMPONENT\|SUB\|TYPE) |
+| **Event window** | Rolling time window (e.g., 14 days) of events for a single asset |
+| **Distance weighting** | Closer neighbors have higher influence on score (weight = 1/distance) |
+| **Agent** | LLM-based enrichment system that analyzes flags and provides recommendations |
+| **SME** | Subject Matter Expert |
+| **CMMS** | Computerized Maintenance Management System |
+| **TUI** | Terminal User Interface (Textual-based) |
+| **pgvector** | PostgreSQL extension for vector similarity search |
+| **tsvector** | PostgreSQL text search vector type |

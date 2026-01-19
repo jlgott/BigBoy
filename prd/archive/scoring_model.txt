@@ -1,0 +1,76 @@
+# 6. Scoring Model
+
+## 6.1 Temporal Score (The Label)
+
+Each chunk is labeled with its temporal proximity to a failure event. This score decays with time distance from failure.
+
+- Chunk immediately before failure: high score (e.g., 0.95)
+- Chunk 30 days before failure: low score (e.g., 0.1)
+- Chunk with no associated failure: score = 0
+
+The decay function (linear, exponential, etc.) is configurable per failure type.
+
+## 6.2 Relevance Score
+
+Filters out spurious correlations by mapping data sources to relevant failure types.
+
+- SME-defined component mapping matrix (maintained in Excel, imported)
+- Maps: signal/source → component → failure types
+- Upstream/downstream relationships captured
+- If chunk component does not map to failure component: low/zero relevance
+
+Example: Suspension pressure data should not score high for turbo failures.
+
+## 6.3 Trust Score
+
+Weights data by source reliability.
+
+- Static per source type for v1
+- Examples: Live sensor (0.8), Operator report (0.6), Oil lab (0.9)
+- Maintained as simple lookup table
+
+## 6.4 Combined Scoring at Inference
+
+### For Sensors and Oil (Euclidean Distance)
+
+When a new chunk arrives:
+
+1. Build feature vector for the chunk
+2. Normalize using fleet baseline
+3. Filter index by metadata (asset model, component, etc.)
+4. KNN to find top K neighbors (default K=10)
+5. Calculate distance-weighted score from neighbor labels
+
+Distance weighting formula (1/d):
+
+```
+score = Σ(weight × neighbor_label) / Σ(weight)
+where weight = 1 / distance
+```
+
+Closer neighbors dominate the score. Even if 8/10 neighbors are normal (low labels), two very close failure-adjacent neighbors will drive a high score.
+
+### For Events (BM25 Similarity)
+
+When a new event window arrives:
+
+1. Convert to token document
+2. BM25 search against historical event corpus
+3. Get similarity scores for all historical windows
+4. Calculate similarity-weighted score from neighbor labels
+
+Similarity weighting formula:
+
+```
+score = Σ(similarity × neighbor_label) / Σ(similarity)
+where similarity = BM25 score (0-1 normalized)
+```
+
+Higher similarity windows dominate the score.
+
+## 6.5 Flagging Threshold
+
+- If combined score > threshold: generate flag
+- Threshold is tunable, calibrate after initial data run
+- Start conservative (lower threshold, more flags), tune based on feedback
+- Consider: Top N per day/shift as additional constraint to prevent overwhelming humans

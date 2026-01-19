@@ -1,0 +1,75 @@
+# 10. Agent Architecture
+
+## 10.1 Role
+
+The agent handles nuance that pure mathematical scoring cannot:
+
+- Reviews every flag (human always makes final decision in v1)
+- Pulls context: asset history, related sensors, recent events
+- Checks for superficial matches (e.g., "matched oil pump failure but oil sensors healthy")
+- Outputs structured reasoning and recommendation
+
+## 10.2 Structured Output Schema
+
+```json
+{
+  "flag_id": "...",
+  "recommendation": "escalate | monitor | dismiss",
+  "confidence": 0.0-1.0,
+  "reasoning": {
+    "similar_chunks": [...],
+    "context_signals": [...],
+    "key_factors": [...]
+  },
+  "summary": "Human-readable explanation",
+  "agent_version": "1.0"
+}
+```
+
+## 10.3 Example Agent Reasoning
+
+Scenario: Chunk matches historical oil pump failure pattern, but oil sensors are currently healthy.
+
+```json
+{
+  "recommendation": "dismiss",
+  "confidence": 0.75,
+  "reasoning": {
+    "matched_failures": ["oil_pump_failure_042"],
+    "key_indicators_in_historical": ["oil_temp_spike", "oil_pressure_drop"],
+    "current_status": "oil_temp normal, oil_pressure normal",
+    "conclusion": "Pattern match driven by non-causal sensors"
+  },
+  "summary": "Matched oil pump failure pattern but oil sensors are healthy. Likely false positive."
+}
+```
+
+## 10.4 Phased Autonomy
+
+Designed for eventual autonomous operation:
+
+- **Phase 1 (v1):** Agent enriches all flags, human decides
+- **Phase 2:** Agent earns trust on specific categories, selective autonomy
+- **Phase 3:** Full autonomy with human override capability
+
+Structured output enables measuring agent accuracy against human decisions.
+
+## 10.5 Context Gathering
+
+Agent pulls:
+- Recent sensor readings for related components
+- Recent oil sample results
+- Recent maintenance events
+- Previous flags on same asset
+- Historical failure patterns for this asset model
+
+## 10.6 Superficial Match Detection
+
+Common patterns to filter:
+
+- **Cross-component confusion:** Matched turbo failure but turbo sensors healthy
+- **Temporal mismatch:** Historical pattern showed 2-week degradation, current shows sudden spike
+- **Magnitude differences:** Historical pattern had 10x the signal strength
+- **Missing co-indicators:** Historical failures had correlated signals, current does not
+
+Agent should flag these and recommend dismissal or monitoring rather than immediate escalation.

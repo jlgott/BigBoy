@@ -1,0 +1,85 @@
+# 11. Human Review Interface
+
+## 11.1 Overview
+
+Human review is delivered via two interfaces (see Section 16: Application Architecture):
+- **TUI:** Power users, developers, SSH-accessible triage
+- **Web Dashboard:** Multi-user access, richer visualizations
+
+Both interfaces consume the same API and provide identical functionality.
+
+## 11.2 Queue Structure
+- Ticket-based queue (integrate with existing systems or standalone)
+- Prioritized by: score × asset criticality
+- Each ticket contains: flag details, matched historical chunks, agent analysis
+
+## 11.3 Available Actions
+- **Dismiss:** False positive, no action needed
+- **Monitor:** Worth watching, no immediate action
+- **Escalate:** Create work order, immediate attention needed
+
+## 11.4 Information Displayed
+- Current chunk data and context
+- Matched historical chunks with links
+- What happened after historical matches (failures, downtimes)
+- Agent recommendation and reasoning
+- Asset history summary
+
+## 11.5 TUI Screens
+
+### Queue View
+```
+┌─ Flag Queue (12 pending) ────────────────────────┐
+│ ID       Asset    Score  Source   Recommendation │
+│ F-001    T-042    0.87   Sensor   Escalate       │
+│ F-002    T-103    0.82   Oil      Monitor        │
+│ F-003    T-042    0.79   Event    Dismiss        │
+│                                                   │
+│ [d]ismiss [m]onitor [e]scalate [v]iew [q]uit    │
+└───────────────────────────────────────────────────┘
+```
+
+### Flag Detail View
+```
+┌─ Flag F-001 ──────────────────────────────────────┐
+│ Asset: T-042 (789C Haul Truck)                    │
+│ Score: 0.87 (threshold: 0.75)                     │
+│ Source: Sensor (oil_pressure_mean)                │
+│                                                    │
+│ Agent: Escalate (confidence: 0.85)                │
+│ "Oil pressure pattern matches 3 historical        │
+│  failures within 48 hours of flag"                │
+│                                                    │
+│ Matched Chunks:                                   │
+│ • chunk_abc (d=0.002, 3 days before failure)     │
+│ • chunk_def (d=0.005, 5 days before failure)     │
+│                                                    │
+│ [Enter] to view matches  [d/m/e] to decide        │
+└───────────────────────────────────────────────────┘
+```
+
+## 11.6 Web Dashboard Views
+
+### Review Queue Page
+- Sortable/filterable table
+- Asset criticality indicator
+- Agent agreement visual (✓ or ✗)
+- Click row to view detail
+
+### Flag Detail Page
+- Full context panel (asset info, recent history)
+- Matched chunks table with links to failure records
+- Agent analysis card
+- Timeline visualization showing historical pattern
+- Decision buttons (Dismiss / Monitor / Escalate)
+
+### Asset History Page
+- All flags for asset (timeline view)
+- Failure history
+- Recent maintenance
+- Sensor trends (charts)
+
+### Admin Pages
+- Threshold tuning
+- Component mapping editor
+- Metrics dashboard (precision, recall, agent agreement)

@@ -1,0 +1,60 @@
+# 8. Inference Flow
+
+Step-by-step process when new data arrives:
+
+## For Sensors and Oil
+
+1. Raw data arrives from source
+2. Signal/event definition applied (SQL-based transformations, external to system)
+3. Chunk created based on data type strategy
+4. Feature vector constructed
+5. Fleet baseline lookup for normalization
+6. KNN query against pgvector index (metadata filtered)
+7. Distance-weighted score calculated from neighbor labels
+8. If score > threshold: flag generated
+9. Flag stored and added to human queue
+10. Agent enrichment triggered (async)
+
+## For Events
+
+1. Event records arrive from CMMS
+2. Rolling 14-day window constructed for asset
+3. Token document created from events in window
+4. BM25 search against historical event corpus (metadata filtered)
+5. Similarity-weighted score calculated from neighbor labels
+6. If score > threshold: flag generated
+7. Flag stored and added to human queue
+8. Agent enrichment triggered (async)
+
+## Common Post-Flagging Steps
+
+Once a flag is generated (any data type):
+
+1. **Flag record created:**
+   ```json
+   {
+     "flag_id": "...",
+     "chunk_id": "...",
+     "score": 0.87,
+     "threshold": 0.75,
+     "data_source": "sensor|oil|event",
+     "matches": [...],
+     "timestamp": "..."
+   }
+   ```
+
+2. **Flag becomes event** (see Section 9)
+
+3. **Agent enrichment:**
+   - Pull asset context
+   - Analyze matches for superficial patterns
+   - Generate recommendation
+   - Store enrichment output
+
+4. **Queue for human review:**
+   - Prioritize by score × asset criticality
+   - Present with full context
+
+5. **Await human decision:**
+   - Dismiss, Monitor, or Escalate
+   - Capture feedback (see Section 12)

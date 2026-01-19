@@ -1,0 +1,69 @@
+# 15. Technical Architecture
+
+## 15.1 Infrastructure
+- Docker-based deployment
+- Local or cloud (not edge for v1)
+- PostgreSQL with pgvector for sensors/oil
+- PostgreSQL with tsvector for events (or Elasticsearch if needed)
+
+## 15.2 Processing Cadence
+- Batch processing for v1
+- Sensor chunks: processed hourly (or configurable)
+- Oil samples: processed daily
+- Events: processed as they arrive or daily batch
+
+## 15.3 Scale Considerations
+
+Estimated volume:
+- 800 assets × 30 sensors = 24,000 signals
+- 5 min chunks → ~288,000 chunks/hour across fleet
+- Fleet baseline table: ~300 rows
+- Failure-adjacent chunk storage: manageable subset of total
+
+## 15.4 Technology Stack
+
+| Component | Technology |
+|-----------|------------|
+| Database | PostgreSQL 15+ |
+| Vector extension | pgvector |
+| Text search | PostgreSQL tsvector (or Elasticsearch) |
+| API | FastAPI |
+| TUI | Textual (Python) |
+| Web | HTMX + Jinja2 |
+| Container runtime | Docker |
+| Orchestration | Docker Compose (local) / Azure Container Apps (prod) |
+
+## 15.5 Production Infrastructure (Azure)
+
+| Component | Service |
+|-----------|---------|
+| Database | Azure Database for PostgreSQL + pgvector |
+| API | Azure Container Apps |
+| Container Registry | Azure Container Registry |
+| Network | VNet (DB private, API public endpoint) |
+| Dev Access | VPN Gateway or jump box VM |
+
+No staging environment—dev flows direct to prod.
+
+## 15.6 Development Environment
+
+- Local PostgreSQL with pgvector
+- Docker Compose for full stack
+- Jupyter for validation notebooks
+- pip install -e . for editable package development
+
+## 15.7 Deployment Pipeline
+
+```
+[Code Push]
+    ↓
+[Docker Build]
+    ↓
+[Push to ACR]
+    ↓
+[Deploy to Container App]
+    ↓
+[Health Check]
+```
+
+Simple CI/CD, no complex orchestration needed for v1.

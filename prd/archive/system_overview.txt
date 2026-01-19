@@ -1,0 +1,46 @@
+# 3. System Overview
+
+## 3.1 Core Architecture
+
+```
+[Any Data Source]
+       ↓
+[Chunk + Vectorize]
+  - Sensors: stats + delta, fleet baseline normalized
+  - Oil: normalized analytes
+  - Events: structured token documents
+       ↓
+[Score]
+  - Temporal: distance-weighted from failure-adjacent neighbors
+  - Relevance: component mapping matrix
+  - Trust: source reliability (static v1)
+       ↓
+[Store in appropriate index with labels]
+  - Sensors/Oil: pgvector (Euclidean distance)
+  - Events: BM25 search (token similarity)
+       ↓
+[Inference]
+  - New chunk → KNN or BM25 → distance/similarity-weighted neighbor labels → score
+       ↓
+[Flag if threshold met]
+       ↓
+[Flag → Event]
+  - Individual flags feed back into event layer
+  - Event clustering catches: "lots of low-value flags = high value signal"
+       ↓
+[Agent Enrichment]
+  - Context, explanation, recommendation
+  - Filters superficial matches
+       ↓
+[Human Review]
+  - Final decision
+  - Feedback captured
+```
+
+## 3.2 Core Concepts
+- Everything becomes a chunk with features, scores, and metadata
+- Sensors/oil: numeric vectors, Euclidean distance in pgvector
+- Events: token documents, BM25 similarity search
+- Distance/similarity-weighted scoring from neighbor labels (temporal scores)
+- Flags become events, enabling cascade detection
+- Agent handles nuance that pure math cannot

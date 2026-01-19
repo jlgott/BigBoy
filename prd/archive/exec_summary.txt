@@ -1,0 +1,5 @@
+# 1. Executive Summary
+
+This document defines a unified system for predicting equipment failures by analyzing multiple data sources (sensors, oil samples, events) against historical failure patterns. The system replaces fragmented, rule-based approaches with a data-driven pattern matching architecture that learns from historical outcomes.
+
+**Core value proposition:** Instead of maintaining thousands of SME-defined rules that become contradictory and unvalidatable, let the data tell you what actually predicts failures.

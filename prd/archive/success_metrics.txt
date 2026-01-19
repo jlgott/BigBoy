@@ -1,0 +1,64 @@
+# 18. Success Metrics
+
+To be defined in detail, but directionally:
+
+## 18.1 Primary Metrics
+
+| Metric | Definition | Target |
+|--------|------------|--------|
+| **Precision** | Of flags reviewed, what % were actionable (escalated or monitored)? | >30% (v1), >50% (v2) |
+| **Recall** | Of actual failures, what % did we flag beforehand? | >20% (v1), >40% (v2) |
+| **Time to action** | From flag generation to human decision | <4 hours (median) |
+| **Agent agreement rate** | How often do humans agree with agent recommendation? | >60% (v1), >75% (v2) |
+
+## 18.2 Secondary Metrics
+
+| Metric | Definition | Purpose |
+|--------|------------|---------|
+| False positive rate | Flags dismissed / total flags | Monitor alert fatigue |
+| Lead time | Days between flag and failure (for caught failures) | Measure predictive window |
+| Coverage | % of asset-component combinations with sufficient historical data | Track system maturity |
+| Queue backlog | Number of unreviewed flags | Ensure humans can keep up |
+
+## 18.3 Success Criteria by Phase
+
+### Phase 1: Validation
+- **Success:** At least one data type (oil, events, or sensors) shows clear clustering
+- **Measure:** Visual separation in UMAP/t-SNE, clustering metrics (silhouette score >0.3)
+
+### Phase 2: Pilot
+- **Success:** System catches at least one failure before breakdown
+- **Measure:** Documented case of flag → escalation → preventative action → avoided failure
+
+### Phase 3: Production
+- **Success:** System becomes trusted tool for reliability team
+- **Measure:** 
+  - Daily active users >5
+  - >100 flags reviewed/month
+  - Precision >30%
+  - At least 3 documented failure preventions
+
+## 18.4 The Ultimate Metric
+
+**Primary success criterion:** "Did we catch something before it failed that we would have missed otherwise?"
+
+Even once is a win. The goal is to demonstrate value, not perfection.
+
+## 18.5 Metrics Dashboard
+
+Track and visualize:
+- Weekly precision/recall trends
+- Agent agreement rate over time
+- Flags by data source (sensor, oil, event)
+- Flags by asset model
+- Top matched failure types
+- Review queue velocity
+
+## 18.6 What We're NOT Measuring (v1)
+
+- Cost savings (too hard to quantify)
+- Downtime reduction (attribution problem)
+- ROI (premature)
+- User satisfaction scores (just talk to users directly)
+
+Focus on operational metrics that drive behavior and improvement.

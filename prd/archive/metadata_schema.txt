@@ -1,0 +1,18 @@
+# 5. Metadata Schema
+
+All chunks carry consistent metadata for filtering and audit:
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| asset_id | Unique asset identifier | Yes |
+| site_id | Site/location identifier | Yes |
+| timestamp | Chunk timestamp or window end | Yes |
+| data_source | Origin system (sensor, oil lab, maintenance system) | Yes |
+| component_code | Component classification | Yes |
+| asset_model | Asset model (e.g., 789C) | Yes |
+| machine_type | Machine type (e.g., Haul Truck) | Yes |
+| event_id | Event identifier if applicable | No |
+| sample_rate | For sensors: original sample rate | Conditional |
+| window_size | For sensors/events: chunk window size | Conditional |
+| has_prior_window | For sensors: whether delta is meaningful | Conditional |
+| feature_version | Version tag for feature extraction approach | Yes |

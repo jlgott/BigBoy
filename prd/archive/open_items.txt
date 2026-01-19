@@ -1,0 +1,61 @@
+# 17. Open Items and Future Work
+
+## 17.1 Validation Required
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Oil sample pattern separation | Needs validation | Easiest; start here |
+| Event pattern separation | Needs validation | Token-based BM25, second priority |
+| Sensor data pattern separation | Needs validation | Hardest; chunking strategy critical |
+| Distance threshold calibration | TBD | Tune after initial data run |
+| K value for KNN | Default K=10 | May need adjustment per data type |
+| Distance weighting function | Default 1/d | May need 1/d² if separation weak |
+| BM25 parameters | Default k1=1.5, b=0.75 | Tune for event matching |
+
+## 17.2 Parked for Future Versions
+
+| Feature | Notes |
+|---------|-------|
+| Uniqueness/anomaly detection | Shelved due to complexity |
+| Synthetic memories | SME-defined "bad patterns" without historical data; needs process design |
+| SME rules as data source | Rules firing become events; requires rule cleanup/versioning first |
+| Dynamic trust scores | Trust that adapts based on sensor health |
+| Learned scoring weights | ML model to learn optimal Temporal × Relevance × Trust combination |
+| Feedback loop automation | Acting on human feedback to tune system |
+| Multi-asset fleet correlation | "5 different 789Cs flagged for same thing" detection |
+| Edge deployment | Processing on vehicles |
+| Text embeddings for event descriptions | If rich free-text proves valuable; structured tokens primary |
+
+## 17.3 Known Limitations (v1)
+- Will miss novel failure patterns (no historical precedent)
+- Requires sufficient historical failure data to be useful
+- Component mapping quality directly affects relevance scoring
+- Event token vocabulary must be maintained; new token types require awareness
+
+## 17.4 Decision Gates
+
+Before proceeding to next phase:
+
+**Gate 1: Validation Complete**
+- Oil samples show clear clustering? → Proceed
+- Events show BM25 similarity signal? → Proceed
+- Sensors show pattern separation? → Proceed
+- If any fail: reassess approach for that data type
+
+**Gate 2: Infrastructure Build**
+- API functional and tested? → Proceed to TUI
+- TUI validates workflows? → Proceed to Web
+- Feedback from initial users positive? → Continue
+
+**Gate 3: Production Deployment**
+- System catches at least one failure before breakdown? → Success
+- Precision acceptable (>30% flags actionable)? → Continue
+- Agent enrichment adding value? → Keep investing
+
+## 17.5 Open Questions
+
+1. **Event token structure:** Final decision on delimiter and ordering
+2. **Sampling strategy:** What % of normal chunks to store for baseline
+3. **Threshold tuning:** Static vs. dynamic, per-asset-model vs. fleet-wide
+4. **Agent model selection:** Which LLM for enrichment (cost vs. quality)
+5. **Fleet baseline refresh:** Daily batch sufficient or need real-time updates?

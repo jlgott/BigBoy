@@ -1,0 +1,70 @@
+# 14. Signal Definition
+
+Transformations and derived signals are defined externally as SQL queries.
+
+## 14.1 Examples
+
+### Transmission Ratio
+```sql
+-- Transmission ratio
+SELECT timestamp, asset_id,
+  (transmission_speed / engine_rpm) as trans_ratio
+FROM sensor_data
+WHERE engine_rpm > 0
+```
+
+### EGT Delta (Balance Check)
+```sql
+-- EGT delta (balance check)
+SELECT timestamp, asset_id,
+  (egt_temp_1 - egt_temp_2) as egt_delta
+FROM sensor_data
+```
+
+### Rolling Average
+```sql
+-- 10-minute rolling average oil pressure
+SELECT timestamp, asset_id,
+  AVG(oil_pressure) OVER (
+    PARTITION BY asset_id 
+    ORDER BY timestamp 
+    ROWS BETWEEN 10 PRECEDING AND CURRENT ROW
+  ) as oil_pressure_10min_avg
+FROM sensor_data
+```
+
+## 14.2 Management
+- SQL queries stored in version control
+- Executed by existing data infrastructure (dbt, Airflow, etc.)
+- Output lands in tables that chunking system reads from
+- Signal registry tracks: name, query reference, output schema, owner
+
+## 14.3 Signal Registry
+
+| Field | Description |
+|-------|-------------|
+| signal_name | Unique identifier for derived signal |
+| description | What the signal represents |
+| query_file | Path to SQL file in version control |
+| source_table | Input table(s) |
+| output_table | Where results land |
+| owner | Team/person responsible |
+| created_at | When signal was added |
+| last_updated | Most recent query modification |
+
+## 14.4 Why External to PFD System
+
+Signal definition is **data engineering**, not pattern matching:
+- Different change cadence (signals change when source systems change)
+- Different tooling (SQL, dbt vs. Python, ML)
+- Different ownership (DE team vs. reliability/data science)
+
+PFD system consumes clean, derived signals—it doesn't own their creation.
+
+## 14.5 Adding New Signals
+
+1. Write SQL transformation
+2. Add to dbt project or Airflow DAG
+3. Register in signal registry
+4. Update component mapping if needed
+5. PFD system picks up new signal automatically (no code changes)

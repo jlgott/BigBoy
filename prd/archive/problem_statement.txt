@@ -1,0 +1,16 @@
+# 2. Problem Statement
+
+## 2.1 Current State
+- Multiple disconnected data sources (sensors, oil samples, maintenance events, fault codes)
+- SME-defined rules numbering in the thousands
+- Rules are contradictory, unversioned, and impossible to validate
+- High false positive rates eroding trust
+- No systematic way to learn from historical failures
+- Tribal knowledge not captured in systems
+
+## 2.2 Desired State
+- Unified system that ingests all data types
+- Pattern matching against historical failure-adjacent data
+- Explainable flags with links to historical evidence
+- System that improves with each failure
+- SMEs validate patterns rather than author rules

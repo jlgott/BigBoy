@@ -1,0 +1,52 @@
+# 13. Component Mapping
+
+## 13.1 Structure
+
+SME-maintained Excel file, imported into system:
+
+| Field | Description |
+|-------|-------------|
+| signal_source | Data source or signal name |
+| component_code | Component classification |
+| upstream_components | Components that feed into this one |
+| downstream_components | Components affected by this one |
+| relevant_failure_types | Failure types this signal relates to |
+
+## 13.2 Usage
+- At scoring time: lookup relevance between chunk component and failure component
+- High relevance: full weight on temporal score
+- Low relevance: reduced weight or filter out
+- Unmapped signals: default to low relevance, queue for SME mapping
+
+## 13.3 Example Mapping
+
+| Signal Source | Component | Upstream | Downstream | Relevant Failures |
+|--------------|-----------|----------|------------|-------------------|
+| oil_pressure_sensor | OIL_PUMP | OIL_SUMP | ENGINE_BEARINGS, TURBO | oil_pump_failure, bearing_failure |
+| turbo_boost_pressure | TURBO | ENGINE_EXHAUST | INTAKE_MANIFOLD | turbo_failure, boost_leak |
+| transmission_temp | TRANSMISSION | TORQUE_CONVERTER | AXLE | transmission_failure, clutch_failure |
+
+## 13.4 Relevance Scoring
+
+When matching a chunk to historical failures:
+
+1. Direct match (same component): relevance = 1.0
+2. Upstream component: relevance = 0.7
+3. Downstream component: relevance = 0.5
+4. Listed in relevant_failure_types: relevance = 0.8
+5. No relationship: relevance = 0.1 (allow weak signal, don't filter completely)
+
+Relevance multiplies the temporal score:
+
+```
+final_score = temporal_score × relevance
+```
+
+This prevents sensor X from strongly flagging for unrelated component Y failures.
+
+## 13.5 Maintenance
+
+- Excel file stored in version control
+- Import script validates structure and updates database
+- SMEs update quarterly or as new signals/components added
+- Web admin interface for viewing/editing (future)

@@ -1,0 +1,151 @@
+# 16. Application Architecture
+
+## 16.1 Design Principle
+
+Single API serving multiple frontends. All business logic lives in the API layer; UI clients are thin presentation layers only.
+
+## 16.2 Component Structure
+
+```
+/pfd
+  /core           # Pure logic (scoring, KNN, chunking) - no IO
+  /api            # FastAPI - serves both UIs
+  /cli            # Direct scripts, can bypass API for dev/debug
+  /tui            # Textual (Python) - power user interface
+  /web            # HTMX + Jinja - multi-user dashboard
+```
+
+## 16.3 API Layer
+
+RESTful API (FastAPI) providing:
+
+| Endpoint Group | Purpose |
+|----------------|---------|
+| `/flags` | List, filter, get flag details |
+| `/flags/{id}/decision` | Submit review decision |
+| `/queue` | Get prioritized review queue |
+| `/assets/{id}` | Asset history, related flags |
+| `/chunks/{id}` | Chunk details, matched neighbors |
+| `/admin/thresholds` | View/update flagging thresholds |
+| `/admin/mappings` | Component mapping CRUD |
+| `/health` | System health, processing status |
+
+Both TUI and Web hit the same endpoints. CLI can use API or import core directly for scripting/debugging.
+
+## 16.4 TUI (Terminal User Interface)
+
+**Technology:** Textual (Python)
+
+**Target users:** Power users, developers, on-call engineers
+
+**Key screens:**
+- Queue view with keyboard navigation
+- Flag detail with full context
+- Quick decision input (d/m/e for dismiss/monitor/escalate)
+- Asset deep-dive
+
+**Advantages:**
+- Fast iteration during development
+- SSH-accessible for remote triage
+- No browser/deployment overhead
+- Stays in Python ecosystem
+
+## 16.5 Web Dashboard
+
+**Technology:** HTMX + Jinja (server-rendered, minimal JS)
+
+**Target users:** Reliability engineers, supervisors, SMEs
+
+**Key views:**
+- Review queue (filterable, sortable)
+- Flag detail page with visualizations
+- Asset history timeline
+- Admin: threshold tuning, mapping editor
+- Metrics dashboard (precision, volume, agent agreement)
+
+**Advantages:**
+- Multi-user without terminal access
+- Richer visualizations (charts, timelines)
+- Mobile/tablet accessible
+- Shareable URLs for specific flags
+
+## 16.6 Shared Contracts
+
+Both UIs consume identical API responses. Shared Pydantic models define:
+
+```python
+class FlagSummary(BaseModel):
+    flag_id: str
+    asset_id: str
+    score: float
+    timestamp: datetime
+    agent_recommendation: str
+    status: str  # pending | reviewed
+
+class FlagDetail(BaseModel):
+    flag: FlagSummary
+    chunk: ChunkData
+    matches: list[MatchDetail]
+    agent_analysis: AgentOutput
+    asset_context: AssetContext
+
+class ReviewDecision(BaseModel):
+    action: Literal["dismiss", "monitor", "escalate"]
+    rationale: str | None
+    agreed_with_agent: bool
+```
+
+## 16.7 Build Order
+
+1. **Core + API** - Functional backend, testable via curl/Postman
+2. **TUI** - Immediate usability for development and power users
+3. **Web** - Broader team access once workflows validated
+
+TUI development validates API contracts, accelerating web build.
+
+## 16.8 Package Structure
+
+```
+pfd/
+├── __init__.py
+├── core/
+│   ├── __init__.py
+│   ├── chunking.py      # Chunk creation logic
+│   ├── scoring.py       # Distance-weighted scoring
+│   ├── normalization.py # Fleet baseline
+│   └── models.py        # Pydantic data models
+├── api/
+│   ├── __init__.py
+│   ├── main.py          # FastAPI app
+│   ├── flags.py         # Flag endpoints
+│   ├── queue.py         # Queue endpoints
+│   └── admin.py         # Admin endpoints
+├── cli/
+│   ├── __init__.py
+│   └── process_chunks.py
+├── tui/
+│   ├── __init__.py
+│   ├── app.py           # Main TUI app
+│   ├── queue_view.py
+│   └── flag_detail.py
+└── web/
+    ├── __init__.py
+    ├── routes.py        # Web routes
+    └── templates/       # Jinja templates
+```
+
+## 16.9 Import Conventions
+
+```python
+# Core logic (pure functions, no IO)
+from pfd.core.scoring import distance_weighted_score
+from pfd.core.models import FlagSummary
+
+# API (uses core)
+from pfd.api.main import app
+
+# CLI (can import core or call API)
+from pfd.core.chunking import create_sensor_chunk
+```
+
+All business logic lives in `core` and `api`. UIs only handle presentation.

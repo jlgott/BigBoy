@@ -1,0 +1,42 @@
+# 9. Flags as Events
+
+Critical design decision: flags from any data source become events themselves.
+
+## 9.1 Why This Matters
+- Individual sensor flag might be low value
+- 10 sensor flags on same asset in 6 hours = high value signal
+- Event clustering layer handles density, frequency, co-occurrence
+
+## 9.2 Implementation
+- When flag generated: create event record
+- Event record contains: asset, timestamp, source type, flag details
+- Event layer processes flags alongside maintenance events, fault codes, etc.
+- Event clustering can now detect: "lots of low-value flags = high value signal"
+
+## 9.3 Loop Prevention
+- Flags marked as `source_type = "sensor_flag"` or `"oil_flag"` or similar
+- Derivative events (flags) do not generate new flags
+- Only raw events can trigger the flagging process
+
+## 9.4 Event Record Schema for Flags
+
+When a flag is generated, it creates an event record:
+
+```json
+{
+  "event_id": "flag_sensor_123_20260115_143022",
+  "event_type": "SYSTEM_FLAG",
+  "source_type": "sensor_flag",  // or oil_flag, event_flag
+  "asset_id": "truck_789_042",
+  "timestamp": "2026-01-15T14:30:22Z",
+  "component_code": "ENGINE_OIL_PUMP",
+  "flag_details": {
+    "flag_id": "...",
+    "score": 0.87,
+    "data_source": "sensor",
+    "primary_signal": "oil_pressure_mean"
+  }
+}
+```
+
+This event can then be included in future event window chunking, enabling cascade detection.

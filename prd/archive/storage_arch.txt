@@ -1,0 +1,82 @@
+# 7. Storage Architecture
+
+## 7.1 Dual Storage Strategy
+
+### Sensors and Oil: pgvector
+- Numeric feature vectors
+- Euclidean distance search
+- Single index containing both sensor and oil chunks
+- Metadata filtering for query refinement
+
+### Events: Text Search
+- Token documents in PostgreSQL `tsvector` OR Elasticsearch
+- BM25 similarity scoring
+- GIN index for fast token matching
+
+## 7.2 What Gets Stored
+
+### All Data Types
+- All chunks that are failure-adjacent (have temporal score > 0)
+- Sampled normal chunks (TBD: sampling rate)
+- Raw values preserved alongside normalized values
+- Feature version tagged for future reprocessing
+
+### Sensor/Oil Chunks Table
+```sql
+CREATE TABLE chunks (
+    chunk_id text PRIMARY KEY,
+    data_source text,  -- 'sensor' or 'oil'
+    asset_id text,
+    timestamp timestamptz,
+    component_code text,
+    asset_model text,
+    embedding vector(9),  -- or vector(14) for oil
+    temporal_score float,
+    metadata jsonb
+)
+```
+
+### Event Chunks Table
+```sql
+CREATE TABLE event_chunks (
+    chunk_id text PRIMARY KEY,
+    asset_id text,
+    window_start timestamptz,
+    window_end timestamptz,
+    event_tokens tsvector,  -- or text for Elasticsearch
+    temporal_score float,
+    metadata jsonb
+)
+
+CREATE INDEX ON event_chunks USING GIN (event_tokens);
+```
+
+## 7.3 Fleet Baseline Table
+
+Small lookup table for normalization:
+
+| Field | Description |
+|-------|-------------|
+| asset_model | Asset model identifier |
+| feature_name | Feature name (signal, analyte) |
+| trimmed_mean | Fleet mean (excluding outliers) |
+| trimmed_std | Fleet std (excluding outliers) |
+| updated_at | Last refresh timestamp |
+
+Refreshed daily.
+
+## 7.4 Event Token Registry (Optional)
+
+Lookup table for token vocabulary tracking:
+
+| Field | Description |
+|-------|-------------|
+| token | Full token string (e.g., ENGINE\|OIL_PUMP\|MECHANICAL\|FAULT) |
+| component | Component code |
+| subcomponent | Subcomponent if available |
+| breakdown_type | Breakdown category |
+| event_type | Event type |
+| first_seen | When token first appeared |
+| last_seen | Most recent occurrence |
+
+Used for monitoring vocabulary drift and data quality.

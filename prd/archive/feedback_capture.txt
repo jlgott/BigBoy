@@ -1,0 +1,68 @@
+# 12. Feedback Capture
+
+Every decision is stored for future learning:
+
+```json
+{
+  "flag_id": "...",
+  "chunk": {...},
+  "matches": [
+    {
+      "chunk_id": "historical_chunk_123",
+      "distance": 0.002,
+      "weight": 500,
+      "temporal_score": 0.92,
+      "failure_event_id": "failure_456",
+      "failure_type": "oil_pump_failure",
+      "days_before_failure": 3
+    },
+    {
+      "chunk_id": "historical_chunk_789",
+      "distance": 0.005,
+      "weight": 200,
+      "temporal_score": 0.85,
+      "failure_event_id": "failure_012",
+      "failure_type": "oil_pump_failure",
+      "days_before_failure": 5
+    }
+  ],
+  "weighted_score": 0.87,
+  "agent_analysis": {...},
+  "human_decision": {
+    "action": "dismissed | escalated | monitored",
+    "agreed_with_agent": true | false,
+    "rationale": "..."
+  },
+  "timestamp": "..."
+}
+```
+
+## 12.1 Match Details
+
+Each match in the `matches` array captures full traceability:
+
+| Field | Description |
+|-------|-------------|
+| chunk_id | ID of the matched historical chunk |
+| distance | Distance from new chunk to this neighbor (or BM25 similarity for events) |
+| weight | Calculated weight (1/distance for sensors/oil, similarity for events) |
+| temporal_score | The neighbor's label (proximity to failure) |
+| failure_event_id | The failure this chunk preceded |
+| failure_type | Type/category of failure |
+| days_before_failure | How many days before failure this chunk occurred |
+
+This allows human reviewers to see exactly why the flag was generated and trace back to specific historical failures.
+
+## 12.2 Usage
+
+**V1:** Capture only, no automated action on feedback.
+
+**Future:** Training data for improved scoring, threshold tuning, agent autonomy.
+
+## 12.3 Metrics Derived from Feedback
+
+Track over time:
+- Precision: % of flags that were escalated or monitored
+- Agent agreement rate: % of decisions matching agent recommendation
+- Time to decision: From flag to human action
+- Asset-specific patterns: Which assets generate most false positives

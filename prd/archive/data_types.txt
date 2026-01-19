@@ -1,0 +1,124 @@
+# 4. Data Types and Processing
+
+## 4.1 Sensor Data
+
+### 4.1.1 Chunking Strategy
+- Fixed time windows (default: 5 minutes)
+- Each chunk contains summary statistics plus delta from previous window
+
+### 4.1.2 Chunk Representation
+
+| Feature | Description |
+|---------|-------------|
+| mean | Average value over window |
+| std | Standard deviation over window |
+| min | Minimum value over window |
+| max | Maximum value over window |
+| delta_mean | Change in mean from previous window |
+| delta_std | Change in std from previous window |
+| delta_min | Change in min from previous window |
+| delta_max | Change in max from previous window |
+| trend_slope | Slope over last N chunks (optional) |
+
+If no previous window exists, delta values default to zero.
+
+### 4.1.3 Normalization
+- Fleet baseline per signal per asset model
+- Trimmed mean/std (exclude top/bottom 5%) to handle outlier sensors
+- Baseline refreshed daily via batch job
+- No per-asset scalers; fleet-wide baseline only
+- Stored as small lookup table (~hundreds of rows)
+
+### 4.1.4 Distance Metric
+- Euclidean distance on normalized features
+
+---
+
+## 4.2 Oil Samples
+
+### 4.2.1 Chunking Strategy
+- Single sample = one chunk
+- Point-in-time snapshot
+
+### 4.2.2 Chunk Representation
+- Normalized analyte values (iron ppm, silicon ppm, viscosity, etc.)
+- Optional: delta from previous sample for same asset
+
+### 4.2.3 Distance Metric
+- Euclidean distance on normalized analytes
+
+---
+
+## 4.3 Events (Maintenance Records, Fault Codes, etc.)
+
+### 4.3.1 Design Rationale
+
+Event data is primarily structured (fault codes, maintenance types, event categories) with minimal rich free-text. The descriptions are not sufficiently detailed for semantic text embeddings to provide reliable signal.
+
+Therefore, events use **structured token documents** with BM25 similarity search. This approach:
+- Handles new component codes without re-encoding
+- Captures event frequency naturally (term frequency)
+- Preserves co-occurrence patterns implicitly
+- Provides interpretable match explanations
+
+### 4.3.2 Chunking Strategy
+- Rolling window per asset (default: 14 days)
+- Captures event patterns, not just individual events
+- Window slides forward; each chunk represents "what happened in the last 14 days as of this timestamp"
+
+### 4.3.3 Token Representation
+
+Events are converted to structured token documents rather than embedded.
+
+**Token format:** `COMPONENT|SUBCOMPONENT|BREAKDOWN|TYPE`
+
+**Example window:**
+```
+ENGINE|OIL_PUMP|MECHANICAL|FAULT
+ENGINE|OIL_PUMP|MECHANICAL|FAULT
+ENGINE|OIL_PUMP|MECHANICAL|FAULT
+TRANSMISSION|TORQUE_CONV|ELECTRICAL|MAINT
+ENGINE|COOLANT|SENSOR|FAULT
+ENGINE|OIL_PUMP|MECHANICAL|MAINT
+```
+
+Each 14-day window becomes a document of tokens. Token repetition naturally captures event frequency.
+
+**Token construction:**
+- Component code from event record
+- Subcomponent if available
+- Breakdown category (MECHANICAL, ELECTRICAL, HYDRAULIC, etc.)
+- Event type (FAULT, MAINT, INSPECTION, etc.)
+
+### 4.3.4 Similarity Metric
+
+**BM25 (Best Matching 25)** scoring against historical event windows.
+
+- New window → token document
+- BM25 search against corpus of historical windows
+- Similarity scores used as weights (analogous to inverse distance)
+- Same weighted temporal scoring pattern as sensors/oil
+
+**Why BM25 over alternatives:**
+
+| Metric | Problem for Events |
+|--------|-------------------|
+| Euclidean on one-hot | Hyper-sparse, breaks with new codes |
+| Text embedding | Loses structural patterns, requires re-encoding |
+| Jaccard only | Ignores frequency (1 fault = 15 faults) |
+| BM25 | ✓ Handles new tokens, captures frequency, interpretable |
+
+### 4.3.5 Interpretability
+
+Token-based matching enables human-readable explanations:
+
+> "This pattern matched because both windows had high frequency of ENGINE|OIL_PUMP|MECHANICAL|FAULT and presence of TRANSMISSION|TORQUE_CONV|ELECTRICAL|MAINT"
+
+### 4.3.6 Implementation Notes
+
+**Storage options:**
+1. PostgreSQL with `tsvector` and GIN index
+2. Elasticsearch with BM25 scoring
+3. In-memory BM25 (rank_bm25 library)
+
+**V1 recommendation:** PostgreSQL tsvector for simplicity and unified infrastructure with sensors/oil.
