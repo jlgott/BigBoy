@@ -4,7 +4,7 @@
 
 A system that remembers every failure we've ever had and watches for the warning signs to happen again.
 
-All data linked back to significant events: failures, near-misses, interventions, known bad patterns. Every new piece of data scored against these learnings and assessed for risk.
+All data linked back to **significant** events: failures, near-misses, interventions, known bad patterns. Every new piece of data scored against these learnings and assessed for risk.
 
 When a threshold is breached, a team of AI agents activates. Not one model, a swarm. One pulls recent events. One checks oil trends. One scans sensor behavior. One reviews asset history. They cross-reference, corroborate, and build a case.
 
@@ -14,9 +14,9 @@ The result surfaces to a human: a recommendation backed by historical evidence a
 
 ## The Problem Today
 
-We have data everywhere. Oil samples in one system. Fault codes in another. Sensor readings in a third. Maintenance history scattered across spreadsheets and tribal knowledge.
+Disjointed datasets, disjointed systems.  External Data / Infrastructure gatekeepers who don't truly understand the underlying business or value propositions.  
 
-We have thousands of rules accumulated over years, unvalidated, unversioned, little controls or governance, contradicting each other.
+We have signifigant tech debt, hundreds of rules accumulated over years, unvalidated, unversioned, little controls or governance, contradicting each other, and they are not cross domain or unified.
 
 We have smart people doing manual triage, but they can't watch 800 assets every day. Things slip through. Failures happen that, in hindsight, had warning signs we missed.
 
@@ -45,4 +45,4 @@ Find one major potential failure that would not have triiggered as strongly thro
 
 ## Autonomy
 
-The system functions laregly in an autonomous way with very little maintenance or signifigant human development time outside of new feature implementation.
+The system functions largely in an autonomous way with very little maintenance or signifigant human development time outside of new feature implementation.
