@@ -2,23 +2,25 @@
 
 ## The Vision
 
-A system that remembers every failure we've ever had—and watches for the warning signs to happen again.
+A system that remembers every failure we've ever had and watches for the warning signs to happen again.
 
 All data linked back to significant events: failures, near-misses, interventions, known bad patterns. Every new piece of data scored against these learnings and assessed for risk.
 
-When a threshold is breached, a team of AI agents activates. Not one model—a squad. One pulls recent events. One checks oil trends. One scans sensor behavior. One reviews asset history. They cross-reference, corroborate, and build a case.
+When a threshold is breached, a team of AI agents activates. Not one model, a swarm. One pulls recent events. One checks oil trends. One scans sensor behavior. One reviews asset history. They cross-reference, corroborate, and build a case.
 
-The result surfaces to a human: a recommendation backed by historical evidence and context. Not a black-box alert—a reasoned assessment with receipts.
+The result surfaces to a human: a recommendation backed by historical evidence and context. Not a black-box alert a reasoned assessment with receipts.
 
-800 assets. Continuous coverage. Failures caught before they happen.
+800 assets. Continuous coverage.
 
 ## The Problem Today
 
 We have data everywhere. Oil samples in one system. Fault codes in another. Sensor readings in a third. Maintenance history scattered across spreadsheets and tribal knowledge.
 
-We have thousands of rules—accumulated over years, written by people who've since left, contradicting each other, impossible to validate.
+We have thousands of rules accumulated over years, unvalidated, unversioned, little controls or governance, contradicting each other.
 
 We have smart people doing manual triage, but they can't watch 800 assets every day. Things slip through. Failures happen that, in hindsight, had warning signs we missed.
+
+We can and are throwing more people at these problems but the ultimate solution is scalable, cost-efficient autonomy.
 
 ## The Shift
 
@@ -32,13 +34,15 @@ The human still decides. But now they're deciding with evidence, not hunting for
 
 ## What This Enables
 
-- **Proactive maintenance** — act on early warnings, not breakdowns
-- **Institutional memory** — learnings captured in the system, not lost when people leave
-- **Scalable attention** — AI handles the grunt work, humans handle judgment
-- **Continuous improvement** — every decision feeds back, the system gets smarter
+- **Proactive maintenance**:   act on early warnings, not breakdowns
+- **Institutional memory**:   learnings captured in the system, not lost when people leave
+- **Scalable attention**:   AI handles the grunt work, humans handle judgment
+- **Continuous improvement**:   every decision feeds back, the system gets smarter
 
 ## What Success Looks Like
 
-One caught failure that we would have missed otherwise.
+Find one major potential failure that would not have triiggered as strongly through normal measures.
 
-Then another. Then it becomes the way we work.
+## Autonomy
+
+The system functions laregly in an autonomous way with very little maintenance or signifigant human development time outside of new feature implementation.
